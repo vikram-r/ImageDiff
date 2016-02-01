@@ -11,7 +11,7 @@ import akka.event.Logging
   * Created by vikram on 1/28/16.
   */
 
-object ImageProcessingActor {
+object SubImageProcessingActor {
   val white = new Color(255, 255, 255)
 
   case class Coord(x: Int,
@@ -21,13 +21,12 @@ object ImageProcessingActor {
                              modified: BufferedImage)
 }
 
-class ImageProcessingActor extends Actor with ActorLogging {
-  import ImageProcessingActor._
+class SubImageProcessingActor extends Actor with ActorLogging {
+  import SubImageProcessingActor._
 
   def receive = {
     case SubImageMessage(original, modified) => {
-      log.info("Received subimage {}", original)
-
+      diffImages(original, modified)
     }
     case _ => log.error("Could not understand message")
   }
