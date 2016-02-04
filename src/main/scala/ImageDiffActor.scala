@@ -39,17 +39,22 @@ class ImageDiffActor extends Actor with ActorLogging{
       graphics.drawImage(original, 0, 0, null)
       graphics.dispose()
 
-      diffImageDim = math.min(math.min(original.getWidth, modified.getWidth),
-        math.min(original.getHeight(), modified.getHeight))
+      val diffImageWidth = resizedOriginal.getWidth
+      val diffImageHeight = resizedOriginal.getHeight
 
-      //todo this loop is currently dumb, it only iterates to the smallest width or height (instead of both)
-      for (i <- 0 until diffImageDim by MAX_SUBIMAGE_DIM){
-        val size = if (i + (MAX_SUBIMAGE_DIM) > diffImageDim) diffImageDim - i else MAX_SUBIMAGE_DIM
+      for (x <- 0 until diffImageWidth by MAX_SUBIMAGE_DIM;
+           y <- 0 until diffImageHeight by MAX_SUBIMAGE_DIM
+          ) {
+        val width = if (x + MAX_SUBIMAGE_DIM > diffImageWidth) diffImageWidth - x else MAX_SUBIMAGE_DIM
+        val height = if (y + MAX_SUBIMAGE_DIM > diffImageHeight) diffImageHeight - y else MAX_SUBIMAGE_DIM
+
         subImagesSent += 1
         context.actorOf(Props(new SubImageProcessingActor())) !
-          new SubImageMessage(original.getSubimage(i, i, size, size),
-            modified.getSubimage(i, i, size, size))
+          new SubImageMessage(resizedOriginal.getSubimage(x, y, width, height),
+            modified.getSubimage(x, y, width, height))
       }
+
+      log.info(s"${subImagesSent} partitions sent")
     }
 
     case SubImageProcessedMessage(diffed, location) => {

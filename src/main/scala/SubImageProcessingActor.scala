@@ -44,7 +44,6 @@ class SubImageProcessingActor extends Actor with ActorLogging {
     graphics.dispose()
 
     (diff /: coords)((accum, coord) => {
-      log.info("{},{}", coord.x, coord.y)
       accum.setRGB(coord.x, coord.y, diffPixel(b1.getRGB(coord.x, coord.y), b2.getRGB(coord.x, coord.y)))
       accum
     })
