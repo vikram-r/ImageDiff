@@ -6,6 +6,7 @@ import javax.imageio.ImageIO
 import akka.actor.{ActorLogging, Actor}
 import akka.actor.Actor.Receive
 import akka.event.Logging
+import ImageDiffActor._
 
 /**
   * Created by vikram on 1/28/16.
@@ -26,7 +27,7 @@ class SubImageProcessingActor extends Actor with ActorLogging {
 
   def receive = {
     case SubImageMessage(original, modified) => {
-      diffImages(original, modified)
+      sender ! new SubImageProcessedMessage(diffImages(original, modified), 1)
     }
     case _ => log.error("Could not understand message")
   }
@@ -37,8 +38,12 @@ class SubImageProcessingActor extends Actor with ActorLogging {
                       y <- 0 until b1.getHeight) yield Coord(x, y)
 
     val diff = new BufferedImage(b1.getWidth, b1.getHeight, BufferedImage.TYPE_INT_RGB)
+    val graphics = diff.createGraphics()
+    graphics.setBackground(Color.white)
+    graphics.clearRect(0, 0, diff.getWidth, diff.getHeight)
+    graphics.dispose()
 
-    coords.foldLeft(diff)((accum, coord) => {
+    (diff /: coords)((accum, coord) => {
       log.info("{},{}", coord.x, coord.y)
       accum.setRGB(coord.x, coord.y, diffPixel(b1.getRGB(coord.x, coord.y), b2.getRGB(coord.x, coord.y)))
       accum
