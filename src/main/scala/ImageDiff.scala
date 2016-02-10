@@ -12,6 +12,7 @@ import akka.pattern.ask
 import akka.dispatch.ExecutionContexts._
 import akka.util.Timeout
 
+import scala.concurrent.Await
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -33,17 +34,23 @@ object ImageDiff {
     val startActor = context.actorOf(Props(new ImageDiffActor()))
     val future = startActor ? StartImageDiffMessage(initialImage, modifiedImage)
 
-    future.map(
-      result => {
-        context.terminate()
-      }
-    )
+    val result = Await.result(future, timeout.duration).asInstanceOf[BufferedImage]
+
+    saveBufferedImage(result, "diffed")
+    context.terminate()
   }
 
   def loadBufferedImage(name: String) = Try(ImageIO.read(new File(s"./${name}"))) match {
     case Success(image) => Some(image)
     case Failure(ex) => exitWithError("Could not load image", Some(ex))
                         None
+  }
+
+  def saveBufferedImage(image: BufferedImage, name: String) =
+    Try(ImageIO.write(image, "jpg", new File(s"./${name}"))) match {
+      case Success(image) => Some(image)
+      case Failure(ex) => exitWithError("Could not save image", Some(ex))
+        None
   }
 
   def exitWithError(message: String, ex: Option[Throwable]) = {

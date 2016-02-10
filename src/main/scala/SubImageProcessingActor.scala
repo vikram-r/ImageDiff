@@ -13,21 +13,17 @@ import ImageDiffActor._
   */
 
 object SubImageProcessingActor {
-  val white = new Color(255, 255, 255)
-
-  case class Coord(x: Int,
-                   y: Int)
-
   case class SubImageMessage(original: BufferedImage,
-                             modified: BufferedImage)
+                             modified: BufferedImage,
+                             location: Coord)
 }
 
 class SubImageProcessingActor extends Actor with ActorLogging {
   import SubImageProcessingActor._
 
   def receive = {
-    case SubImageMessage(original, modified) => {
-      sender ! new SubImageProcessedMessage(diffImages(original, modified), 1)
+    case SubImageMessage(original, modified, location) => {
+      sender ! new SubImageProcessedMessage(diffImages(original, modified), location)
     }
     case _ => log.error("Could not understand message")
   }
@@ -50,6 +46,6 @@ class SubImageProcessingActor extends Actor with ActorLogging {
   }
 
   //if the pixels are different, return p2, otherwise return white
-  def diffPixel(p1: Int, p2: Int): Int = if (p1 == p2) white.getRGB else p2
+  def diffPixel(p1: Int, p2: Int): Int = if (p1 == p2) Color.white.getRGB else p2
 
 }
