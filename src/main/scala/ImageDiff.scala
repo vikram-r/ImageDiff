@@ -40,16 +40,16 @@ object ImageDiff {
     context.terminate()
   }
 
-  def loadBufferedImage(name: String) = Try(ImageIO.read(new File(s"./${name}"))) match {
-    case Success(image) => Some(image)
-    case Failure(ex) => exitWithError("Could not load image", Some(ex))
+  def loadBufferedImage(name: String) = Try(ImageIO.read(new File(s"./$name"))) match {
+    case Success(image) ⇒ Some(image)
+    case Failure(ex) ⇒ exitWithError("Could not load image", Some(ex))
                         None
   }
 
   def saveBufferedImage(image: BufferedImage, name: String) =
-    Try(ImageIO.write(image, "jpg", new File(s"./${name}"))) match {
-      case Success(image) => Some(image)
-      case Failure(ex) => exitWithError("Could not save image", Some(ex))
+    Try(ImageIO.write(image, "jpg", new File(s"./$name"))) match {
+      case Success(image) ⇒ Some(image)
+      case Failure(ex) ⇒ exitWithError("Could not save image", Some(ex))
         None
   }
 

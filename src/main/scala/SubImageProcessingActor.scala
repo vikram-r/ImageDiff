@@ -22,16 +22,15 @@ class SubImageProcessingActor extends Actor with ActorLogging {
   import SubImageProcessingActor._
 
   def receive = {
-    case SubImageMessage(original, modified, location) => {
+    case SubImageMessage(original, modified, location) ⇒
       sender ! new SubImageProcessedMessage(diffImages(original, modified), location)
-    }
-    case _ => log.error("Could not understand message")
+    case _ ⇒ log.error("Could not understand message")
   }
 
   def diffImages(b1: BufferedImage, b2: BufferedImage): BufferedImage = {
     //assume that both images are the same size
-    val coords = for (x <- 0 until b1.getWidth;
-                      y <- 0 until b1.getHeight) yield Coord(x, y)
+    val coords = for (x ← 0 until b1.getWidth;
+                      y ← 0 until b1.getHeight) yield Coord(x, y)
 
     val diff = new BufferedImage(b1.getWidth, b1.getHeight, BufferedImage.TYPE_INT_RGB)
     val graphics = diff.createGraphics()
@@ -39,7 +38,7 @@ class SubImageProcessingActor extends Actor with ActorLogging {
     graphics.clearRect(0, 0, diff.getWidth, diff.getHeight)
     graphics.dispose()
 
-    (diff /: coords)((accum, coord) => {
+    (diff /: coords)((accum, coord) ⇒ {
       accum.setRGB(coord.x, coord.y, diffPixel(b1.getRGB(coord.x, coord.y), b2.getRGB(coord.x, coord.y)))
       accum
     })

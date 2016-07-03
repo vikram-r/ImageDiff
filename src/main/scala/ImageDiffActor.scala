@@ -37,7 +37,7 @@ class ImageDiffActor extends Actor with ActorLogging{
   private var subImagesReceived: Map[Coord, BufferedImage] = Map.empty //a map of subImage locations to the subImage
 
   def receive = {
-    case StartImageDiffMessage(original, modified) => {
+    case StartImageDiffMessage(original, modified) ⇒
       startActor = Some(sender)
 
       //recreate original with the same size as modified. Crop or add white background if necessary
@@ -52,14 +52,14 @@ class ImageDiffActor extends Actor with ActorLogging{
       graphics.dispose()
 
       /*
-       * don't send the messages in the loop, because it could lead to a
+       * Don't send the messages in the loop, because it could lead to a
        * race condition if earlier SubImageProcessingActors finish before this loop
        * terminates. (subImagesReceived could be equal to subImagesSent before all
        * messages are sent)
        */
       {
-        for (x <- 0 until diffImageWidth by MAX_SUBIMAGE_DIM;
-             y <- 0 until diffImageHeight by MAX_SUBIMAGE_DIM
+        for (x ← 0 until diffImageWidth by MAX_SUBIMAGE_DIM;
+             y ← 0 until diffImageHeight by MAX_SUBIMAGE_DIM
         ) yield {
           val width = if (x + MAX_SUBIMAGE_DIM > diffImageWidth) diffImageWidth - x else MAX_SUBIMAGE_DIM
           val height = if (y + MAX_SUBIMAGE_DIM > diffImageHeight) diffImageHeight - y else MAX_SUBIMAGE_DIM
@@ -68,22 +68,18 @@ class ImageDiffActor extends Actor with ActorLogging{
           new SubImageMessage(resizedOriginal.getSubimage(x, y, width, height),
             modified.getSubimage(x, y, width, height), Coord(x, y))
         }
-      }.foreach(message => context.actorOf(Props(new SubImageProcessingActor())) ! message)
+      }.foreach(message ⇒ context.actorOf(Props(new SubImageProcessingActor())) ! message)
 
-      log.info(s"${subImagesSent} partitions sent")
-    }
-
-    case SubImageProcessedMessage(diffed, location) => {
-      log.info(s"Received diffed partition for ${location}")
-      subImagesReceived += (location -> diffed)
+      log.info(s"$subImagesSent partitions sent")
+    case SubImageProcessedMessage(diffed, location) ⇒
+      log.info(s"Received diffed partition for $location")
+      subImagesReceived += (location → diffed)
 
       if (subImagesReceived.size == subImagesSent) {
         log.info(s"${subImagesReceived.size} partitions received")
         startActor.foreach(_ ! combine)
       }
-    }
-
-    case _ => log.error("Unknown message, could not start")
+    case _ ⇒ log.error("Unknown message, could not start")
   }
 
   def combine(): BufferedImage = {
@@ -92,7 +88,7 @@ class ImageDiffActor extends Actor with ActorLogging{
     graphics.setBackground(Color.white)
     graphics.clearRect(0, 0, diffImageWidth, diffImageHeight)
 
-    subImagesReceived.foreach(entry => graphics.drawImage(entry._2, entry._1.x, entry._1.y, null))
+    subImagesReceived.foreach(entry ⇒ graphics.drawImage(entry._2, entry._1.x, entry._1.y, null))
     graphics.dispose()
     diffImage
   }
